@@ -29,6 +29,10 @@ app.use(cors())
 app.use(cookieParser())
 app.use(express.json());
 
+app.get("/",(req,res)=>{
+  res.setHeader("Access-Control-Allow-Credentials","true");
+  res.send("Api is Running.....");
+});
 app.use("/api/auth", authRoute);
 app.use("/api/users", usersRoute);
 app.use("/api/hotels", hotelsRoute);
