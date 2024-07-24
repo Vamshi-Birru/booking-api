@@ -26,15 +26,24 @@ mongoose.connection.on("disconnected", () => {
 
 //middlewares
 const corsOptions = {
-  origin: '*', // Update with your frontend domain
+  origin: (origin, callback) => {
+    // Allow all origins
+    callback(null, true);
+  },
   credentials: true,
 };
 app.use(cors(corsOptions))
 app.use(cookieParser())
 app.use(express.json());
-
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  // Set Access-Control-Allow-Origin to the request's origin
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
 app.get("/",(req,res)=>{
-  res.setHeader("Access-Control-Allow-Credentials","true");
   res.send("Api is Running.....");
 });
 app.use("/api/auth", authRoute);
