@@ -23,7 +23,10 @@ const connect = async () => {
 mongoose.connection.on("disconnected", () => {
   console.log("mongoDB disconnected!");
 });
-
+const getAllowedDomains = async () => {
+  // Fetch or read allowed domains from a database or configuration file
+  return ['http://localhost:3000/', 'https://booking-client-9k3a.onrender.com/','http://localhost:3001'];
+};
 //middlewares
 const corsOptions = {
   origin: (origin, callback) => {
@@ -35,13 +38,17 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.use(cookieParser())
 app.use(express.json());
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  // Set Access-Control-Allow-Origin to the request's origin
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+app.use(async (req, res, next) => {
+  const allowedDomains = await getAllowedDomains();
+  const origin = req.headers.origin;
+  if (!origin || allowedDomains.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+  }
   next();
+ 
 });
 app.get("/",(req,res)=>{
   res.send("Api is Running.....");
