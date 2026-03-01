@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "nodemon index.js",
     "seed-inventory": "node scripts/seed-inventory.js",
