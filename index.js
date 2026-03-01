@@ -30,7 +30,7 @@ mongoose.connection.on("disconnected", () => {
 });
 const getAllowedDomains = async () => {
   // Fetch or read allowed domains from a database or configuration file
-  return ['http://localhost:3000/', 'https://booking-client-9k3a.onrender.com/','http://localhost:3001','https://id-preview--a2465ada-684a-42ed-b7d6-20eb16e3c7d7.lovable.app/'];
+  return ['http://localhost:3000/', 'https://booking-client-9k3a.onrender.com/','https://booking-client-tmv1.onrender.com'];
 };
 //middlewares
 const corsOptions = {
