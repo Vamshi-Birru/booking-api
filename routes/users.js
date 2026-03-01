@@ -6,6 +6,7 @@ import {
   getUsers,
 } from "../controllers/user.js";
 import { verifyAdmin, verifyToken, verifyUser } from "../utils/verifyToken.js";
+import { getLimiter } from "../middlewares/rateLimit.js";
 
 const router = express.Router();
 
@@ -28,9 +29,9 @@ router.put("/:id", verifyUser, updateUser);
 router.delete("/:id", verifyUser, deleteUser);
 
 //GET
-router.get("/:id", verifyUser, getUser);
+router.get("/:id", getLimiter, verifyUser, getUser);
 
 //GET ALL
-router.get("/", verifyAdmin, getUsers);
+router.get("/", getLimiter, verifyAdmin, getUsers);
 
 export default router;

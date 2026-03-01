@@ -8,6 +8,7 @@ import {
   updateRoomAvailability,
 } from "../controllers/room.js";
 import { verifyAdmin } from "../utils/verifyToken.js";
+import { getLimiter } from "../middlewares/rateLimit.js";
 
 const router = express.Router();
 //CREATE
@@ -19,10 +20,8 @@ router.put("/:id", verifyAdmin, updateRoom);
 //DELETE
 router.delete("/:id/:hotelid", verifyAdmin, deleteRoom);
 //GET
-
-router.get("/:id", getRoom);
+router.get("/:id", getLimiter, getRoom);
 //GET ALL
-
-router.get("/", getRooms);
+router.get("/", getLimiter, getRooms);
 
 export default router;

@@ -1,15 +1,25 @@
 import Hotel from "../models/Hotel.js";
 import Room from "../models/Room.js";
+import { findRoomTypesByHotelId } from "../repository/roomTypeRepository.js";
+import { findInventoryForRoomTypeAndDates } from "../repository/inventoryRepository.js";
+import { searchHotelsWithAvailability } from "../services/searchService.js";
+import { createError } from "../utils/error.js";
+import { getDateRangeStrings } from "../services/dateUtils.js";
 
 export const createHotel = async (req, res, next) => {
-  const newHotel = new Hotel(req.body);
+  const hotels = req.body.hotels;
 
-  try {
-    const savedHotel = await newHotel.save();
-    res.status(200).json(savedHotel);
-  } catch (err) {
-    next(err);
+  for(var i=0;i<hotels.length;i++){
+    const newHotel = new Hotel(hotels[i]);
+    try {
+        const savedHotel = await newHotel.save();
+      } catch (err) {
+        next(err);
+      }
   }
+  res.status(201).json(hotels);
+
+
 };
 export const updateHotel = async (req, res, next) => {
   try {
@@ -90,16 +100,79 @@ export const countByType = async (req, res, next) => {
 
 export const getHotelRooms = async (req, res, next) => {
   try {
-    const hotel = await Hotel.findById(req.params.id);
- 
-    const list = await Promise.all(
-      hotel.rooms.map((room) => {
-        return Room.findById(room);
-      })
-    );
-    res.status(200).json(list)
-  } catch (err) {
+    const hotelId = req.params.id;
+    const { checkIn, checkOut } = req.query;
 
+    const roomTypes = await findRoomTypesByHotelId(hotelId);
+    if (!roomTypes.length) {
+      return res.status(200).json([]);
+    }
+
+    const result = [];
+    for (const rt of roomTypes) {
+      const item = {
+        _id: rt._id,
+        type: rt.type,
+        price: rt.price,
+        totalRooms: rt.totalRooms,
+      };
+      if (checkIn && checkOut) {
+        const dates = getDateRangeStrings(checkIn, checkOut);
+        if (dates.length) {
+          const invDocs = await findInventoryForRoomTypeAndDates({
+            hotelId,
+            roomTypeId: rt._id,
+            dates,
+          });
+          if (invDocs.length === dates.length) {
+            item.availableRooms = Math.min(...invDocs.map((d) => d.availableRooms));
+          } else {
+            item.availableRooms = 0;
+          }
+        }
+      }
+      result.push(item);
+    }
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const searchHotels = async (req, res, next) => {
+  try {
+    const {
+      city,
+      checkIn,
+      checkOut,
+      guests,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    if (!checkIn || !checkOut) {
+      return next(createError(400, "checkIn and checkOut are required"));
+    }
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    if (checkOutDate <= checkInDate) {
+      return next(createError(400, "checkOut must be after checkIn"));
+    }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
+
+    const result = await searchHotelsWithAvailability({
+      city,
+      checkIn,
+      checkOut,
+      guests: guests ? parseInt(guests, 10) : undefined,
+      page: pageNum,
+      limit: limitNum,
+    });
+
+    res.status(200).json(result);
+  } catch (err) {
     next(err);
   }
 };

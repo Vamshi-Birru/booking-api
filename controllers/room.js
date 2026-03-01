@@ -1,21 +1,31 @@
 import Room from "../models/Room.js";
 import Hotel from "../models/Hotel.js";
+import RoomType from "../models/RoomType.js";
 import { createError } from "../utils/error.js";
 
 export const createRoom = async (req, res, next) => {
-  const hotelId = req.params.hotelid;
-  const newRoom = new Room(req.body);
- 
   try {
-    const savedRoom = await newRoom.save();
-   
-      await Hotel.findByIdAndUpdate(hotelId, {
-        $push: { rooms: savedRoom._id },
-      });
+    const hotelId = req.params.hotelid || req.body.hotelId;
+    const type = req.body.roomType || req.body.type;
+    const price = req.body.price;
+    const totalRooms = req.body.totalRooms;
     
-    res.status(200).json(savedRoom);
+    if (!hotelId || !type || !totalRooms) {
+      return next(createError(400, "hotelId, roomType/type, and totalRooms are required"));
+    }
+
+    const newRoomType = new RoomType({
+      hotelId,
+      type,
+      price: price ?? 0,
+      totalRooms,
+    });
+    const savedRoomType = await newRoomType.save();
+    await Hotel.findByIdAndUpdate(hotelId, {
+  $push: { rooms: savedRoomType._id }
+});
+    res.status(201).json(savedRoomType);
   } catch (err) {
-    
     next(err);
   }
 };
