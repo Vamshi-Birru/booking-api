@@ -54,6 +54,10 @@ curl http://localhost:8800/health
 
 ## Run with Docker (recommended demo)
 
+If you prefer to specify Redis via a single URL, set `REDIS_URL` in your
+`.env` or export it in the environment before starting; the app will use
+that value instead of `REDIS_HOST`/`REDIS_PORT`.
+
 Build and run full stack:
 
 ```bash

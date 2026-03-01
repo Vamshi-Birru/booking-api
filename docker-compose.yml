@@ -10,6 +10,8 @@ services:
       - redis
     environment:
       - MONGO_URI=mongodb://mongo:27017/hotel-booking
+      # application prefers full URL if provided
+      - REDIS_URL=redis://redis:6379
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     restart: always
